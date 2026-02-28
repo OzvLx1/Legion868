@@ -1,5 +1,5 @@
 <?php
-// FORZAR ZONA HORARIA DE MÉXICO 
+// FORZAR ZONA HORARIA DE MÉXICO
 date_default_timezone_set('America/Mexico_City');
 
 include 'auth.php';
@@ -9,7 +9,7 @@ $mensaje = "";
 $mes_actual = date('m');
 $anio_actual = date('Y');
 $fecha_hoy = date('Y-m-d');
-$fecha_exacta = date('Y-m-d H:i:s'); // Hora exacta para la base de datos
+$fecha_exacta = date('Y-m-d H:i:s');
 
 // --- 1. GESTIÓN DEL FONDO DE CAJA DIARIO ---
 $res_fondo = $conn->query("SELECT fondo_inicial FROM caja_diaria WHERE fecha = '$fecha_hoy'");
@@ -40,7 +40,7 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
         $conn->query("UPDATE inventario SET stock = stock + $cant WHERE producto = '$prod'");
         $mensaje = "<div class='bg-blue-600 text-white p-3 rounded mb-6 font-bold text-center'>📦 Stock actualizado: +$cant $prod</div>";
     }
-    // C) COBRAR (VENTA NORMAL O PREPAGO)
+    // C) COBRAR (VENTA NORMAL, PREPAGO O PLAN ESPECIAL)
     elseif (isset($_POST['accion']) && $_POST['accion'] == 'cobrar') {
         $usuario_id = $_POST['usuario_id'];
         $precio_unitario = $_POST['precio_unitario'];
@@ -48,8 +48,11 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
         $concepto = $_POST['concepto'];
         $forma_pago = $_POST['forma_pago']; 
 
-        $monto_total = ($concepto == 'Abono / Prepago') ? $_POST['monto_total_visual'] : ($precio_unitario * $cantidad);
-        $concepto_final = ($cantidad > 1 && $concepto != 'Abono / Prepago') ? "$concepto (x$cantidad)" : $concepto;
+        // NUEVA LÓGICA: Si es Abono o Plan Especial, tomamos el monto escrito a mano
+        $es_monto_manual = ($concepto == 'Abono / Prepago' || $concepto == 'Plan Especial');
+        $monto_total = $es_monto_manual ? $_POST['monto_total_visual'] : ($precio_unitario * $cantidad);
+        
+        $concepto_final = ($cantidad > 1 && !$es_monto_manual) ? "$concepto (x$cantidad)" : $concepto;
 
         // VERIFICACIÓN DE MONEDERO
         if ($forma_pago == 'Monedero') {
@@ -60,7 +63,7 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
             }
         }
 
-        // 1. Guardar el pago (AHORA FORZAMOS LA HORA LOCAL)
+        // 1. Guardar el pago 
         $sql_pago = "INSERT INTO pagos (usuario_id, monto, concepto, forma_pago, fecha) VALUES ('$usuario_id', '$monto_total', '$concepto_final', '$forma_pago', '$fecha_exacta')";
         
         if ($conn->query($sql_pago) === TRUE) {
@@ -70,6 +73,7 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
                 $conn->query("UPDATE usuarios SET saldo_monedero = saldo_monedero + $monto_total WHERE id = '$usuario_id'");
                 $mensaje = "<div class='bg-green-500 text-white p-3 rounded mb-6 font-bold text-center shadow animate-pulse'>💰 Abono registrado. Saldo a favor sumado.</div>";
             } else {
+                // Si es un Plan Especial o Mensualidad normal, se marca como pagado
                 if (!in_array($concepto, ['Agua', 'Electrolífe'])) {
                     $conn->query("UPDATE usuarios SET estado_pago = 'pagado' WHERE id = '$usuario_id'");
                 } else {
@@ -133,19 +137,22 @@ $res_saldos = $conn->query("SELECT nombre, apellido, saldo_monedero FROM usuario
 // Configuración Vistas
 $filtro_sql_usuarios = "";
 $filtro_sql_historial = "";
+
 $opcion_abono = ['nombre'=>'Abono / Prepago', 'precio'=>'manual'];
+$opcion_especial = ['nombre'=>'Plan Especial', 'precio'=>'manual']; // NUEVA OPCIÓN
 
 if ($vista == 'adultos') {
     $filtro_sql_usuarios = "WHERE tipo_usuario != 'teen'";
     $filtro_sql_historial = "AND u.tipo_usuario != 'teen' AND p.concepto NOT LIKE '%Agua%' AND p.concepto NOT LIKE '%Electrolífe%'";
-    $planes_disponibles = [['nombre'=>'Mensual','precio'=>3500], ['nombre'=>'Semanal','precio'=>1250], ['nombre'=>'4 Veces x Semana','precio'=>2800], ['nombre'=>'3 Veces x Semana','precio'=>2500], ['nombre'=>'Clase Suelta','precio'=>250], $opcion_abono];
+    // Agregamos Plan Especial a los adultos
+    $planes_disponibles = [['nombre'=>'Mensual','precio'=>3500], ['nombre'=>'Semanal','precio'=>1250], ['nombre'=>'4 Veces x Semana','precio'=>2800], ['nombre'=>'3 Veces x Semana','precio'=>2500], ['nombre'=>'Clase Suelta','precio'=>250], $opcion_especial, $opcion_abono];
 } elseif ($vista == 'teens') {
     $filtro_sql_usuarios = "WHERE tipo_usuario = 'teen'";
     $filtro_sql_historial = "AND u.tipo_usuario = 'teen' AND p.concepto NOT LIKE '%Agua%' AND p.concepto NOT LIKE '%Electrolífe%'";
-    $planes_disponibles = [['nombre'=>'Paquete 3x Semana','precio'=>1650], ['nombre'=>'Mensualidad Completa','precio'=>2500], ['nombre'=>'Clase Suelta','precio'=>250], $opcion_abono];
+    // Agregamos Plan Especial a los teens
+    $planes_disponibles = [['nombre'=>'Paquete 3x Semana','precio'=>1650], ['nombre'=>'Mensualidad Completa','precio'=>2500], ['nombre'=>'Clase Suelta','precio'=>250], $opcion_especial, $opcion_abono];
 } elseif ($vista == 'bebidas') {
     $filtro_sql_usuarios = ""; 
-    // CORRECCIÓN: Ahora el historial de bebidas también permite ver los Abonos
     $filtro_sql_historial = "AND (p.concepto LIKE '%Agua%' OR p.concepto LIKE '%Electrolífe%' OR p.concepto = 'Abono / Prepago')";
     $planes_disponibles = [['nombre'=>'Agua','precio'=>30], ['nombre'=>'Electrolífe','precio'=>30], $opcion_abono];
 }
