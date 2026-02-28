@@ -139,17 +139,15 @@ $filtro_sql_usuarios = "";
 $filtro_sql_historial = "";
 
 $opcion_abono = ['nombre'=>'Abono / Prepago', 'precio'=>'manual'];
-$opcion_especial = ['nombre'=>'Plan Especial', 'precio'=>'manual']; // NUEVA OPCIÓN
+$opcion_especial = ['nombre'=>'Plan Especial', 'precio'=>'manual']; 
 
 if ($vista == 'adultos') {
     $filtro_sql_usuarios = "WHERE tipo_usuario != 'teen'";
     $filtro_sql_historial = "AND u.tipo_usuario != 'teen' AND p.concepto NOT LIKE '%Agua%' AND p.concepto NOT LIKE '%Electrolífe%'";
-    // Agregamos Plan Especial a los adultos
     $planes_disponibles = [['nombre'=>'Mensual','precio'=>3500], ['nombre'=>'Semanal','precio'=>1250], ['nombre'=>'4 Veces x Semana','precio'=>2800], ['nombre'=>'3 Veces x Semana','precio'=>2500], ['nombre'=>'Clase Suelta','precio'=>250], $opcion_especial, $opcion_abono];
 } elseif ($vista == 'teens') {
     $filtro_sql_usuarios = "WHERE tipo_usuario = 'teen'";
     $filtro_sql_historial = "AND u.tipo_usuario = 'teen' AND p.concepto NOT LIKE '%Agua%' AND p.concepto NOT LIKE '%Electrolífe%'";
-    // Agregamos Plan Especial a los teens
     $planes_disponibles = [['nombre'=>'Paquete 3x Semana','precio'=>1650], ['nombre'=>'Mensualidad Completa','precio'=>2500], ['nombre'=>'Clase Suelta','precio'=>250], $opcion_especial, $opcion_abono];
 } elseif ($vista == 'bebidas') {
     $filtro_sql_usuarios = ""; 
@@ -181,7 +179,7 @@ $res_historial = $conn->query($sql_historial);
         
         <div class="flex items-center gap-4">
             <a href="index.php" class="text-gray-400 hover:text-white text-sm border border-gray-600 px-3 py-1 rounded transition"><i class="fas fa-home mr-2"></i>Inicio</a>
-            <a href="reporte.php" class="text-gray-400 hover:text-white text-sm border border-gray-600 px-3 py-1 rounded transition"><i class="fas fa-file-alt mr-2"></i>Reporte</a>
+            <a href="reportemensual.php" class="text-gray-400 hover:text-white text-sm border border-gray-600 px-3 py-1 rounded transition"><i class="fas fa-chart-bar mr-2"></i>Reporte</a>
             <div class="bg-gray-800 px-4 py-1 rounded border border-gray-600">
                 <span class="text-xs text-gray-400 uppercase">Ingresos Mes</span>
                 <span class="font-bold text-green-400 ml-2">$<?= number_format($gran_total) ?></span>

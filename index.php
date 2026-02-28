@@ -42,30 +42,22 @@ $nombre_mes = $meses[(int)$mes_actual];
 </head>
 <body class="bg-gray-900 text-white font-sans h-screen flex flex-col overflow-hidden">
 
-    <nav class="bg-black border-b border-gray-800 p-4 flex justify-between items-center relative z-50 shrink-0">
-        <div class="flex items-center gap-3">
-            <i class="fas fa-dumbbell text-lime-500 text-2xl"></i>
-            <h1 class="text-2xl font-bold tracking-tighter text-white">LEGIÓN <span class="text-lime-500">868</span></h1>
+<nav class="bg-black border-b border-gray-800 p-4 flex justify-between items-center sticky top-0 z-50 shadow-md">
+        <div class="text-2xl font-black tracking-widest text-white flex items-center gap-2">
+            LEGIÓN<span class="text-green-500">868</span>
         </div>
-        <div class="relative group h-full flex items-center">
-            <button class="flex items-center gap-3 text-gray-400 hover:text-white transition focus:outline-none py-2">
-                <div class="text-right hidden md:block">
-                    <span class="block text-sm font-bold text-white">Bienvenido, <?php echo $_SESSION['nombre']; ?></span>
-                    <span class="block text-xs text-lime-500 uppercase"><?php echo $_SESSION['rol']; ?></span>
-                </div>
-                <div class="w-10 h-10 rounded-full bg-orange-600 flex items-center justify-center text-white font-bold text-lg border-2 border-gray-800 group-hover:border-white transition">
-                    <?php echo substr($_SESSION['nombre'], 0, 1); ?>
-                </div>
-                <i class="fas fa-chevron-down text-xs transition group-hover:rotate-180"></i>
-            </button>
-            <div class="absolute right-0 top-full w-48 bg-gray-800 rounded-xl shadow-2xl border border-gray-700 py-2 hidden group-hover:block z-50">
-                <a href="logout.php" class="block px-4 py-2 text-sm text-red-400 hover:bg-red-900/30 hover:text-red-300 transition flex items-center gap-2">
-                    <i class="fas fa-sign-out-alt"></i> Cerrar Sesión
-                </a>
-            </div>
+        <div class="flex items-center gap-4">
+            <span class="text-gray-400 text-sm hidden md:inline">Hola, Administrador</span>
+            
+            <a href="reportemensual.php" class="bg-blue-600 hover:bg-blue-500 text-white px-4 py-2 rounded text-sm transition font-bold shadow flex items-center gap-2">
+                <i class="fas fa-chart-line"></i> Reportes
+            </a>
+            
+            <a href="logout.php" class="bg-red-600 hover:bg-red-500 text-white px-4 py-2 rounded text-sm transition font-bold shadow flex items-center gap-2">
+                <i class="fas fa-sign-out-alt"></i> Salir
+            </a>
         </div>
     </nav>
-
     <div class="flex flex-1 overflow-hidden">
         
         <main class="flex-1 overflow-y-auto p-6 md:p-8">
